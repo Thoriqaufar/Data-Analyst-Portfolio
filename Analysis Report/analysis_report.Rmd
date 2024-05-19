@@ -1,0 +1,133 @@
+---
+title: "Analysis Report"
+author: "Thoriq Aufar Nubli"
+date: "2024-05-19"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+This report provides a detailed analysis of retail data to uncover trends, patterns, and insights that can inform business decisions.
+
+```{r library, include=FALSE}
+library(tidyverse)
+library(janitor)
+library(readxl)
+```
+
+```{r data loading, include=FALSE}
+sales_data = read_excel("C:/Users/thori/Desktop/Bismillah Kerja/Portofolio/RStudio/Portofolio_Data Analyst_1/walmart Retail Data.xlsx")
+```
+
+# Data Overview
+```{r data overview, echo=FALSE}
+sales_data = sales_data %>% 
+  clean_names()
+
+glimpse(sales_data)
+```
+
+```{r data transform, include=FALSE}
+sum(is.na(sales_data))
+
+sales_data = sales_data %>% 
+  drop_na()
+
+sales_data = sales_data %>% 
+  mutate(month = month(order_date, label = TRUE),
+         year = year(order_date))
+```
+
+```{r data processing, include=FALSE}
+monthly_sales = sales_data %>% 
+  group_by(year, month) %>% 
+  summarise(total_sales = sum(order_quantity))
+
+peak_sales_period = monthly_sales %>% 
+  arrange(desc(total_sales)) %>% 
+  head(1)
+
+category_sales = sales_data %>% 
+  group_by(product_sub_category) %>% 
+  summarise(total_sales = sum(order_quantity)) %>% 
+  arrange(desc(total_sales))
+
+top_profit_sales_by_category = sales_data %>% 
+  group_by(product_sub_category) %>% 
+  summarise(total_profit = sum(profit)) %>% 
+  arrange(desc(total_profit))
+
+top_10_sales_by_state = sales_data %>% 
+  group_by(state) %>% 
+  summarise(total_sales = sum(order_quantity)) %>% 
+  arrange(desc(total_sales)) %>% 
+  head(10)
+```
+
+# Exploratory Data Analysis (EDA)
+### Sales Over Time
+```{r data viz monthly sales, echo=FALSE}
+ggplot(monthly_sales, aes(x = month, y = total_sales, group = year, color = factor(year))) +
+  geom_line() +
+  labs(title = "Monthly Sales Over Years", x = "Month", y = "Sales") +
+  theme_minimal() +
+  theme(legend.title = element_blank())
+```
+
+### Sales by Category
+```{r data viz sales by category, echo=FALSE}
+ggplot(category_sales, aes(x = reorder(product_sub_category, total_sales), y = total_sales, fill = product_sub_category)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "Sales by Category", x = "Category", y = "Total Sales") +
+  theme_minimal() +
+  theme(legend.title = element_blank()) +
+  geom_text(aes(label = total_sales), vjust = 0.3, hjust = 1.2)
+```
+
+### Total Profit by Category
+```{r data viz total profit by category, echo=FALSE}
+ggplot(top_profit_sales_by_category, aes(x = reorder(product_sub_category, total_profit), y = total_profit, fill = product_sub_category)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(x = "Category", y = "Total Sales") +
+  theme_minimal() +
+  theme(legend.title = element_blank())
+```
+
+### Top 10 States with the Most Order
+```{r data viz top 10 states, echo=FALSE}
+ggplot(top_10_sales_by_state, aes(x = reorder(state, total_sales), y = total_sales, fill = state)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "Top 10 Sales by State", x = "State", y = "Total Sales") +
+  theme_minimal() +
+  theme(legend.title = element_blank()) +
+  geom_text(aes(label = total_sales), vjust = 0.3, hjust = 1.2)
+```
+
+# Key Insights
+### Summary of Findings
+* **Sales Trends:** Monthly sales show a fluctuating trend, with the highest peak in May each year.
+* **Top Categories:** Categories such as “Paper”, “Phones and Communications”, and “Binders and Binders Accessories” contributed the most to overall sales.
+* **Top Profit:** Categories such as “Telephone and Communications” and “Fastening and Fastening Accessories” are the top 2 categories with the highest profits. Even though "Paper" is the category with the highest sales, it does not make "Paper" the category with the highest profits.
+* **Loss Category:** There are 3 categories that are losing money, namely "Scissors, Rulers and Trimmers", "Bookshelves", and "Tables".
+* **Most Orders State:** California is the state with the most orders.
+
+### Recomendations
+* **Focus on High-Profit Categories:** Increase marketing and inventory for top-profit categories to maximize sales.
+* **Product Strategy:** Consider promoting your best-selling products more aggressively.
+* **Investigate some things further:** Conduct further investigation to find out the causes of fluctuating sales and loss-making categories.
+
+### Conclussion
+This retail analysis report provides valuable insights into sales trends and product performance. By leveraging these insights, the company can make informed decisions to drive growth and profitability.
+
+
+
+
+
